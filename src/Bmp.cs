@@ -17,7 +17,8 @@ public class BMP {
 	public uint BitCount => _bitCount;
 	public bool Loaded => _loaded;
 	
-	public void LoadFile(string path){
+	// some palette files are 1.5+ megabytes, for those let's ignore the max bmp size
+	public void LoadFile(string path, bool ignoreMaximumSize = false){
 		
 		try {
 			using var file = FileAccess.Open(path, FileAccess.ModeFlags.Read);
@@ -42,9 +43,13 @@ public class BMP {
 			if (_width <= 0 || _height <= 0)
 				return;
 			
-			if (_width > 512 || _height > 512)
-				return;
-			
+			// Some palette files are huge
+			if (!ignoreMaximumSize)
+			{
+				if (_width > 512 || _height > 512)
+					return;
+			}
+
 			//Ignore these two bytes too
 			file.Get16();
 			

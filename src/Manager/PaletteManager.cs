@@ -44,7 +44,7 @@ public static class PaletteManager {
 		
 		BMP image = new BMP();
 		
-		image.LoadFile("./Resource/palettes/"+name+".bmp");
+		image.LoadFile("./Resource/palettes/"+name+".bmp", true);
 		
 		Texture2D pal = image.GetPalette();
 		
