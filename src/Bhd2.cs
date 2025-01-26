@@ -8,7 +8,7 @@ using System.IO;
 using System.Linq;
 using Godot;
 
-class Bhd2
+public class Bhd2
 {
     public List<int> ballSizes = new List<int>();
 

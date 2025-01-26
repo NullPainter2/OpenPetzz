@@ -24,6 +24,8 @@ public partial class PetRenderer : Node2D
 	//private Texture2D pal;
 
 	private TextureAtlas textureAtlas = null;
+
+	private int animIndex = 0;
 	//Methods
 
 	public override void _Ready()
@@ -43,14 +45,17 @@ public partial class PetRenderer : Node2D
 		AddChild(textureAtlas);*/
 
 		//Create dummy ballz for now.
-		for (int i = 1; i <= 1; i++)
+		// for (int i = 1; i <= 1; i++)
+		for (var ballIndex = 0; ballIndex < AnimationManager.CatBhd.frameHeaders[0].ballPositions.Count; ballIndex++)
 		{
+			var ballPos = AnimationManager.CatBhd.frameHeaders[0].ballPositions[ballIndex];
 
 			int color = 40;
-			
-			Ball dummyBall = new Ball(texture, palette, 64, color, 4, 1, 39);
 
-			Vector2 dummyCoord = new Vector2(0, 0);
+			int diameter = AnimationManager.CatBhd.header.ballSizes[ballIndex]; // 64
+			Ball dummyBall = new Ball(texture, palette, diameter, color, 4, 1, 39);
+
+			Vector2 dummyCoord = new Vector2(ballPos.y, ballPos.z);// new Vector2(0, 0);
 
 			coordArray.Add(new Vector3(dummyCoord.X, dummyCoord.Y, 0));
 			dummyBall.Position = dummyCoord;
@@ -99,7 +104,7 @@ public partial class PetRenderer : Node2D
 
 	public override void _Process(double delta)
 	{
-		//rotation.Y += (float)0.05; 
+		rotation.Y += (float)0.025; 
 		UpdateGeometries();
 	}
 
@@ -126,6 +131,7 @@ public partial class PetRenderer : Node2D
 	//To Do: implement the rotation vector math for x and z rotation
 	private void UpdateMainBallz()
 	{
+		animIndex += 1;
 
 		float rYSin = (float)Math.Sin(rotation.Y);
 		float rYCos = (float)Math.Cos(rotation.Y);
@@ -133,10 +139,15 @@ public partial class PetRenderer : Node2D
 		float rZSin = (float)Math.Sin(rotation.Z);
 		float rZCos = (float)Math.Cos(rotation.Z);
 		
+
 		for (int index = 0; index < this.ballz.Count; index++)
 		{
+			int frame = ( animIndex ) % AnimationManager.CatBhd.frameHeaders.Count;
+			var ballPos = AnimationManager.CatBhd.frameHeaders[frame].ballPositions[index];
 
-			Vector3 coord = this.coordArray[index];
+			Vector3 coord = new Vector3(ballPos.x,ballPos.y,ballPos.z);
+			
+			// Vector3 coord = this.coordArray[index];
 
 			float xf = coord.X;
 			float yf = coord.Y;

@@ -5,7 +5,7 @@ using OpenPetz;
 
 public static class AnimationManager {
 	
-	private static Bhd2 CatBhd { get; set; } = null;
+	public static Bhd2 CatBhd { get; set; } = null;
 	
 	//Methods
 	
