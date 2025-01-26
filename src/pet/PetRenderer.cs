@@ -70,7 +70,7 @@ public partial class PetRenderer : Node2D
 			foreach(var paintBall in parsedLNZFile.PaintBallz)
 			{
 				Vector3 coords = paintBall.Direction;
-				float size = paintBall.Diameter / 100.0f;
+				float size = paintBall.Diameter;
 				float colorIndex = (float) paintBall.Color;
 				paintBallz.Add(new PaintBall(coords, size, colorIndex)); 
 			}

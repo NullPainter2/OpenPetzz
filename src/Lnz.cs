@@ -232,7 +232,7 @@ public class Lnz
 
             RowParser parser = new RowParser(str);
             parser.Int(ref result.BaseBall);
-            parser.Float(ref result.Diameter);
+            parser.Percentage(ref result.Diameter);
             parser.Vector3(ref result.Direction);
             parser.Int(ref result.Color);
             parser.Int(ref result.OutlineColor);
@@ -601,6 +601,15 @@ public class Lnz
                 new char[] { ' ', '\t', ',' },
                 StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
             );
+        }
+
+        public void Percentage(ref float percentage)
+        {
+            this.Float(ref percentage);
+            if (isOK)
+            {
+                percentage = percentage / 100f;
+            }
         }
 
         public void Vector3(ref Vector3 outValue)
