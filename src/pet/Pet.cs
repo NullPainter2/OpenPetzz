@@ -14,13 +14,15 @@ public partial class Pet : Node2D
 		World.pets.Add(this);
 
 		// @xxx testing ...
+		var parsed = new Lnz();
 		{
 
 			var FILE = "./Resource/linez/calico-petz3.lnz"; //"YellowBird.lnz";
 
-			var parsed = new Lnz();
 
 			parsed.Parse(FILE);
+			
+			parsed.Test(); // @debug
 
 			//
 			// Print the result ...
@@ -65,6 +67,7 @@ public partial class Pet : Node2D
 		}
 		
 		PetRenderer petRenderer = new PetRenderer();
+		petRenderer.Init(parsed);
 		AddChild(petRenderer);
 	}
 
