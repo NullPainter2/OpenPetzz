@@ -28,10 +28,14 @@ public partial class PetRenderer : Node2D
 	private int animIndex = 0;
 	//Methods
 
+	Lnz linezData = new Lnz();
+	
 	public override void _Ready()
 	{
 		
 		AnimationManager.FetchCatBhd();
+		
+		linezData.Parse("./Resource/linez/calico-petz3.lnz");
 		
 		LoadTextures();
 		//Prepare the Textures
@@ -91,15 +95,36 @@ public partial class PetRenderer : Node2D
 		}
 
 		//ignore for now
-		/*for (int l = 0; l < 2; l++)
+		
+		foreach(var line in linezData.Linez)
 		{
-
-			Line dummyLine = new Line(null, null, this.ballz[l], this.ballz[l + 1], -1, 1, 39, 39);
+			if (line.StartBall >= this.ballz.Count)
+			{
+				GD.Print(String.Format("Line.StartBall index out of range. {0}/{1}",line.StartBall,this.ballz.Count));
+				continue;
+			}
+			if (line.EndBall >= this.ballz.Count)
+			{
+				GD.Print(String.Format("Line.EndBall index out of range. {0}/{1}",line.EndBall,this.ballz.Count));
+				continue;
+			}
+			
+			
+			Line dummyLine = new Line(
+				null, 
+				null, 
+				this.ballz[line.StartBall],
+				this.ballz[line.EndBall],
+				line.Color, // -1,
+				1,
+				39,//line.RightOutlineColor,//39,
+				39//line.LeftOutlineColor//39
+			);
 
 			//add them to the lists
 			this.linez.Add(dummyLine);
 			AddChild(dummyLine);
-		}*/
+		}
 	}
 
 	public override void _Process(double delta)
