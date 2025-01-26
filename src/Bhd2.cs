@@ -101,310 +101,294 @@ class Bhd2
                     frameHeaders.Add(frameHeader);
                 }
             }
-            
-            
+
+
             if (true) // @debugger
             {
             }
         }
     }
-}
 
-
-public class BHTHeader
-{
-    public UInt32 fileLength;
-    public int version;
-    public string copyright;
-
-    public void Parse(Parser parser)
+    public class BHTHeader
     {
-        parser.U32(ref fileLength);
-        parser.U16(ref version);
-        parser.String(ref copyright);
-    }
-}
+        public UInt32 fileLength;
+        public int version;
+        public string copyright;
 
-
-class BHTBallPosition
-{
-    public int x;
-    public int y;
-    public int z;
-    public int q1;
-    public int q2;
-
-    public void Parse(Parser parser)
-    {
-        parser.I16(ref x);
-        parser.I16(ref y);
-        parser.I16(ref z);
-        parser.U16(ref q1);
-        parser.U16(ref q2);
-    }
-}
-
-class BHTFrameHeader
-{
-    public int minx;
-    public int miny;
-    public int minz;
-    public int maxx;
-    public int maxy;
-    public int maxz;
-    public int tag;
-
-    public List<BHTBallPosition> ballPositions = new List<BHTBallPosition>();
-
-    public void Parse(Parser parser, int numBalls)
-    {
-        Parser.Endianess previousEndian = parser.endian;
-        
-        // parser.SetEndian(Parser.Endianess.BIG_ENDIAN);
-        parser.I16(ref minx);
-        parser.I16(ref miny);
-        parser.I16(ref minz);
-        parser.I16(ref maxx);
-        parser.I16(ref maxy);
-        parser.I16(ref maxz);
-        parser.U16(ref tag);
-        // parser.SetEndian(previousEndian);
-
-        for (int i = 0; i < numBalls; i++) // parser.array(numBalls, () =>
+        public void Parse(Parser parser)
         {
-            var ballPos = new BHTBallPosition();
-            ballPos.Parse(parser);
-            if (parser.isOk)
+            parser.U32(ref fileLength);
+            parser.U16(ref version);
+            parser.String(ref copyright);
+        }
+    }
+
+
+    public class BHTBallPosition
+    {
+        public int x;
+        public int y;
+        public int z;
+        public int q1;
+        public int q2;
+
+        public void Parse(Parser parser)
+        {
+            parser.I16(ref x);
+            parser.I16(ref y);
+            parser.I16(ref z);
+            parser.U16(ref q1);
+            parser.U16(ref q2);
+        }
+    }
+
+    public class BHTFrameHeader
+    {
+        public int minx;
+        public int miny;
+        public int minz;
+        public int maxx;
+        public int maxy;
+        public int maxz;
+        public int tag;
+
+        public List<BHTBallPosition> ballPositions = new List<BHTBallPosition>();
+
+        public void Parse(Parser parser, int numBalls)
+        {
+            Parser.Endianess previousEndian = parser.endian;
+
+            // parser.SetEndian(Parser.Endianess.BIG_ENDIAN);
+            parser.I16(ref minx);
+            parser.I16(ref miny);
+            parser.I16(ref minz);
+            parser.I16(ref maxx);
+            parser.I16(ref maxy);
+            parser.I16(ref maxz);
+            parser.U16(ref tag);
+            // parser.SetEndian(previousEndian);
+
+            for (int i = 0; i < numBalls; i++) // parser.array(numBalls, () =>
             {
-                ballPositions.Add(ballPos);
+                var ballPos = new BHTBallPosition();
+                ballPos.Parse(parser);
+                if (parser.isOk)
+                {
+                    ballPositions.Add(ballPos);
+                }
             }
         }
-        
-    }
-}
-
-public class BHDHeader
-{
-    public int framesOffset = 0;
-    public int version = 0;
-
-    public int numBalls = 0;
-    public List<int> ballSizes = new List<int>(); // # numBalls
-
-    public int animationCount = 0;
-    public List<int> animationOffsets = new List<int>(); // # animationCount
-
-    public void Parse(Parser parser)
-    {
-        int unknown = 0;
-
-        parser.U16(ref framesOffset);
-        parser.U16(ref unknown);
-        parser.U16(ref version);
-        parser.U16(ref numBalls);
-        parser.SkipBytes(30);
-        parser.ArrayU16(numBalls, ref ballSizes);
-        parser.SkipBytes(version == 14 ? 160 : 0); // BHD_VERSION_BABYZ?
-        parser.U16(ref animationCount);
-        parser.ArrayU16(animationCount, ref animationOffsets);
-    }
-}
-
-public class Parser
-{
-    byte[] bytes = null;
-    int index = 0;
-    public bool isOk = true;
-
-    // @todo handle big endian
-    //
-    public enum Endianess
-    {
-        LITTLE_ENDIAN = 0,
-        BIG_ENDIAN = 1
-    };
-    
-    public Endianess endian = Endianess.LITTLE_ENDIAN; 
-
-    public Parser(byte[] _bytes, int _offset = 0, Endianess _endian = Endianess.LITTLE_ENDIAN)
-    {
-        bytes = _bytes;
-        index = _offset;
-        endian = _endian;
     }
 
-    public void SetEndian(Endianess type = Endianess.LITTLE_ENDIAN)
+    public class BHDHeader
     {
-        endian = type;
-    }
-    
-    public void SetOffset(int offset)
-    {
-        index = offset;
-    }
+        public int framesOffset = 0;
+        public int version = 0;
 
-    public void SkipBytes(int n)
-    {
-        if (!isOk)
+        public int numBalls = 0;
+        public List<int> ballSizes = new List<int>(); // # numBalls
+
+        public int animationCount = 0;
+        public List<int> animationOffsets = new List<int>(); // # animationCount
+
+        public void Parse(Parser parser)
         {
-            return;
+            int unknown = 0;
+
+            parser.U16(ref framesOffset);
+            parser.U16(ref unknown);
+            parser.U16(ref version);
+            parser.U16(ref numBalls);
+            parser.SkipBytes(30);
+            parser.ArrayU16(numBalls, ref ballSizes);
+            parser.SkipBytes(version == 14 ? 160 : 0); // BHD_VERSION_BABYZ?
+            parser.U16(ref animationCount);
+            parser.ArrayU16(animationCount, ref animationOffsets);
+        }
+    }
+
+    public class Parser
+    {
+        byte[] bytes = null;
+        int index = 0;
+        public bool isOk = true;
+
+        // @todo handle big endian
+        //
+        public enum Endianess
+        {
+            LITTLE_ENDIAN = 0,
+            BIG_ENDIAN = 1
+        };
+
+        public Endianess endian = Endianess.LITTLE_ENDIAN;
+
+        public Parser(byte[] _bytes, int _offset = 0, Endianess _endian = Endianess.LITTLE_ENDIAN)
+        {
+            bytes = _bytes;
+            index = _offset;
+            endian = _endian;
         }
 
-        if (index + n > bytes.Length)
+        public void SetEndian(Endianess type = Endianess.LITTLE_ENDIAN)
         {
-            isOk = false;
-
-            return;
+            endian = type;
         }
 
-        index += n;
-    }
-
-    public void ArrayU16(int n, ref List<int> list)
-    {
-        for (int i = 0; i < n; i++)
+        public void SetOffset(int offset)
         {
-            int value = 0;
-            U16(ref value);
+            index = offset;
+        }
+
+        public void SkipBytes(int n)
+        {
+            if (!isOk)
+            {
+                return;
+            }
+
+            if (index + n > bytes.Length)
+            {
+                isOk = false;
+
+                return;
+            }
+
+            index += n;
+        }
+
+        public void ArrayU16(int n, ref List<int> list)
+        {
+            for (int i = 0; i < n; i++)
+            {
+                int value = 0;
+                U16(ref value);
+                if (isOk)
+                {
+                    list.Add(value);
+                }
+            }
+        }
+
+        public void Array(int n, Action action)
+        {
+            for (int i = 0; i < n; i++)
+            {
+                action();
+            }
+        }
+
+        public void U32(ref UInt32 outValue)
+        {
+            if (!isOk)
+            {
+                return;
+            }
+
+            if (index + 4 > bytes.Length)
+            {
+                isOk = false;
+                return;
+            }
+
+            outValue = (uint)(
+                (bytes[index + 3] << 24) |
+                (bytes[index + 2] << 16) |
+                (bytes[index + 1] << 8) |
+                bytes[index + 0]
+            );
+
+            index += 4;
+        }
+
+        public void String(ref string outValue)
+        {
+            if (!isOk)
+            {
+                return;
+            }
+
+            string temp = "";
+
+            while (true)
+            {
+                int ch = 0;
+
+                Byte(ref ch);
+
+                if (ch == 0)
+                {
+                    break;
+                }
+
+                if (!isOk) // error in file can also end reading ...
+                {
+                    break;
+                }
+
+                temp += (char)ch;
+            }
+
+            // store only valid value
             if (isOk)
             {
-                list.Add(value);
+                outValue = temp;
             }
         }
-    }
 
-    public void Array(int n, Action action)
-    {
-        for (int i = 0; i < n; i++)
+
+        public void Byte(ref int outValue)
         {
-            action();
-        }
-    }
-
-    public void U32(ref UInt32 outValue)
-    {
-        if (!isOk)
-        {
-            return;
-        }
-
-        // count = 5
-        // maxIndex = 4
-        // index = 3 // last one
-        // index + 1 // one byte is ok
-        // index + 2 // not ok
-        // [index][index+1]
-
-        if (index + 4 > bytes.Length)
-        {
-            isOk = false;
-            return;
-        }
-
-        outValue = (uint)(
-            (bytes[index + 3] << 24) |
-            (bytes[index + 2] << 16) |
-            (bytes[index + 1] << 8) |
-            bytes[index + 0]
-        );
-
-        index += 4;
-    }
-
-    public void String(ref string outValue)
-    {
-        if (!isOk)
-        {
-            return;
-        }
-
-        string temp = "";
-
-        while (true)
-        {
-            int ch = 0;
-
-            Byte(ref ch);
-
-            if (ch == 0)
+            if (!isOk)
             {
-                break;
+                return;
             }
 
-            if (!isOk) // error in file can also end reading ...
+            if (index + 1 > bytes.Length)
             {
-                break;
+                isOk = false;
+                return;
             }
 
-            temp += (char)ch;
+            outValue = bytes[index];
+
+            index += 1;
         }
 
-        // store only valid value
-        if (isOk)
+        public void I16(ref int outValue)
         {
-            outValue = temp;
+            U16(ref outValue);
+
+            // @hack handle negative number
+            if (outValue > Int16.MaxValue)
+            {
+                outValue = -1 * (65536 - outValue);
+            }
         }
-    }
 
-
-    public void Byte(ref int outValue)
-    {
-        if (!isOk)
+        public void U16(ref int outValue)
         {
-            return;
+            if (!isOk)
+            {
+                return;
+            }
+
+            if (index + 2 > bytes.Length)
+            {
+                isOk = false;
+                return;
+            }
+
+            if (endian == Endianess.BIG_ENDIAN)
+            {
+                outValue = (bytes[index + 0] << 8) | bytes[index + 1];
+            }
+            else
+            {
+                outValue = (bytes[index + 1] << 8) | bytes[index + 0];
+            }
+
+            index += 2;
         }
-
-        if (index + 1 > bytes.Length)
-        {
-            isOk = false;
-            return;
-        }
-
-        outValue = bytes[index];
-
-        index += 1;
-    }
-
-    public void I16(ref int outValue)
-    {
-        U16(ref outValue);
-
-        // @hack handle negative number
-        if (outValue > Int16.MaxValue)
-        {
-            outValue = -1 * ( 65536 - outValue );
-        }
-    }
-
-    public void U16(ref int outValue)
-    {
-        if (!isOk)
-        {
-            return;
-        }
-
-        // count = 5
-        // maxIndex = 4
-        // index = 3 // last one
-        // index + 1 // one byte is ok
-        // index + 2 // not ok
-        // [index][index+1]
-
-        if (index + 2 > bytes.Length)
-        {
-            isOk = false;
-            return;
-        }
-
-        if (endian == Endianess.BIG_ENDIAN)
-        {
-            outValue = (bytes[index + 0] << 8) | bytes[index + 1];
-        }
-        else
-        {
-            outValue = (bytes[index + 1] << 8) | bytes[index + 0];
-        }
-
-        index += 2;
     }
 }
