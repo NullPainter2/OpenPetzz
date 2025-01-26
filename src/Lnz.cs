@@ -2,7 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Numerics;
+using Godot; // For Vector3 (instead of using System.Numerics)
+
+// @todo get proper ball id 
+// @todo validate
+// @todo add test
 
 public class Lnz
 {
@@ -179,6 +183,7 @@ public class Lnz
         public float SizeDif = 0;
         public int Group = 0;
         public int Texture = 0;
+        public string BallID; // can be "eBall_irisL"
 
         public static BallzInfo FromLine(string str)
         {
@@ -189,10 +194,11 @@ public class Lnz
             parser.Int(ref result.OutlineColor);
             parser.Int(ref result.spklCl);
             parser.Float(ref result.Fuzz);
-            parser.Enum(ref result.otlntTyp, new int[] { -1, 0, -2 });
+            parser.Int(ref result.otlntTyp);
             parser.Float(ref result.SizeDif);
             parser.Int(ref result.Group);
             parser.Int(ref result.Texture);
+            parser.String(ref result.BallID);
             if (!parser.isOK)
             {
                 return null;
@@ -417,7 +423,12 @@ public class Lnz
             // Console.WriteLine("Parsing line '" + lines[lineIndex] + '"');
 
             var line = lines[lineIndex].Trim();
-            if (line.Equals("[Fur Pattern Balls]"))
+
+            // Lines sometimes have a comments after the section name.
+            // That comment can be whatever, sometimes it is a proper comment too (";", "//").
+            // -> use StartsWith
+
+            if (line.StartsWith("[Fur Pattern Balls]"))
             {
                 ForeachRowInSection((row) =>
                 {
@@ -428,7 +439,7 @@ public class Lnz
                     }
                 }, lines, ref lineIndex);
             }
-            else if (line.Equals("[Body Area]"))
+            else if (line.StartsWith("[Body Area]"))
             {
                 ForeachRowInSection((row) =>
                 {
@@ -439,7 +450,7 @@ public class Lnz
                     }
                 }, lines, ref lineIndex);
             }
-            else if (line.Equals("[Add ball]"))
+            else if (line.StartsWith("[Add ball]"))
             {
                 ForeachRowInSection((row) =>
                 {
@@ -450,7 +461,7 @@ public class Lnz
                     }
                 }, lines, ref lineIndex);
             }
-            else if (line.Equals("[Omissions]"))
+            else if (line.StartsWith("[Omissions]"))
             {
                 ForeachRowInSection((row) =>
                 {
@@ -461,7 +472,7 @@ public class Lnz
                     }
                 }, lines, ref lineIndex);
             }
-            else if (line.Equals("[Project Ball]"))
+            else if (line.StartsWith("[Project Ball]"))
             {
                 ForeachRowInSection((row) =>
                 {
@@ -472,7 +483,7 @@ public class Lnz
                     }
                 }, lines, ref lineIndex);
             }
-            else if (line.Equals("[Move]"))
+            else if (line.StartsWith("[Move]"))
             {
                 ForeachRowInSection((row) =>
                 {
@@ -483,7 +494,7 @@ public class Lnz
                     }
                 }, lines, ref lineIndex);
             }
-            else if (line.Equals("[Ballz Info]"))
+            else if (line.StartsWith("[Ballz Info]"))
             {
                 ForeachRowInSection((row) =>
                 {
@@ -494,7 +505,7 @@ public class Lnz
                     }
                 }, lines, ref lineIndex);
             }
-            else if (line.Equals("[Paint Ballz]"))
+            else if (line.StartsWith("[Paint Ballz]"))
             {
                 ForeachRowInSection((row) =>
                 {
@@ -505,7 +516,7 @@ public class Lnz
                     }
                 }, lines, ref lineIndex);
             }
-            else if (line.Equals("[Linez]"))
+            else if (line.StartsWith("[Linez]"))
             {
                 ForeachRowInSection((row) =>
                 {
@@ -516,7 +527,7 @@ public class Lnz
                     }
                 }, lines, ref lineIndex);
             }
-            else if (line.Equals("[Eyes]"))
+            else if (line.StartsWith("[Eyes]"))
             {
                 ForeachRowInSection((row) =>
                 {
@@ -542,6 +553,14 @@ public class Lnz
         while (lineIndex < lines.Length)
         {
             string line = lines[lineIndex].Trim();
+
+            // Remove comment (Some Petz 3 files had it)
+            int commentIndex = line.IndexOf("//", 0, StringComparison.Ordinal);
+            if (commentIndex != -1)
+            {
+                line = line.Substring(0, commentIndex);
+                line = line.Trim();
+            }
 
             // Console.WriteLine("Parsing item ... '" + lines[lineIndex] + '"');
 
@@ -586,9 +605,9 @@ public class Lnz
 
         public void Vector3(ref Vector3 outValue)
         {
-            float X;
-            float Y;
-            float Z;
+            float X = 0;
+            float Y = 0;
+            float Z = 0;
 
             if (!isOK)
             {
@@ -602,11 +621,15 @@ public class Lnz
                 return;
             }
 
-            if (float.TryParse(parts[index], out X)
-                && float.TryParse(parts[index + 1], out Y)
-                && float.TryParse(parts[index + 2], out Z))
+            this.Float(ref X);
+            this.Float(ref Y);
+            this.Float(ref Z);
+
+            if (isOK)
             {
-                index += 3;
+                outValue.X = X;
+                outValue.Y = Y;
+                outValue.Z = Z;
             }
             else
             {
@@ -684,7 +707,13 @@ public class Lnz
                 return;
             }
 
-            if (float.TryParse(parts[index], out outValue))
+            // ".3" can't be parsed by just `float.TryParse(".3", out value)`
+            if (float.TryParse(
+                    parts[index],
+                    System.Globalization.NumberStyles.Float,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    out outValue
+                ))
             {
                 index++; // prepare to read next value
             }
@@ -711,6 +740,40 @@ public class Lnz
             index++;
         }
     };
+
+
+    public void Test()
+    {
+        // test parsing the sequence and float values
+        var rp = new RowParser(".25 0.125 123456 123.125");
+
+        float X = 0;
+        
+        rp.Float(ref X);
+        if (X != .25f)
+        {
+            GD.Print("Parsing .25 failed");
+        }
+        
+        rp.Float(ref X);
+        if (X != .125f)
+        {
+            GD.Print("Parsing 0.125 failed");
+        }
+
+        rp.Float(ref X);
+        if (X != 123456f)
+        {
+            GD.Print("Parsing 123456f failed");
+        }
+
+        rp.Float(ref X);
+        if (X != 123.125f)
+        {
+            GD.Print("Parsing 123.125 failed");
+        }
+
+    }
 
     //
     // EXAMPLE:
