@@ -103,8 +103,8 @@ public partial class Line : MeshInstance2D
 
 	public override void _Process(double delta)
 	{
-		material.SetShaderParameter("start_ball", start.GlobalPosition);
-		material.SetShaderParameter("end_ball", end.GlobalPosition);
+		material.SetShaderParameter(StringManager.S("start_ball"), start.GlobalPosition);
+		material.SetShaderParameter(StringManager.S("end_ball"), end.GlobalPosition);
 		
 		Vector2 Position = start.Position + (end.Position - start.Position) / 2; 
 
