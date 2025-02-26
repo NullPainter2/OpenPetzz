@@ -10,12 +10,12 @@ public class Bmp {
 	private Image Raster { get; set; } = null;
 	
 	public uint BitCount { get; private set; } = 0;
-	public bool Loaded { get; private set; } = 0;
+	public bool Loaded { get; private set; } = false;
 	
 	[Flags] public enum LoadType {
-	    Palette = 1;
-	    Raster = 2;
-	    All = 3;
+	    Palette = 1,
+	    Raster = 2,
+	    All = 3,
 	}
 	
 	
@@ -38,7 +38,7 @@ public class Bmp {
 			}
 			
 			//Read width and height;
-			if (_type.HasFlags(LoadType.Palette))
+			if (_type.HasFlag(LoadType.Palette))
 			{
     			    Width = file.Get32();
     			    Height = file.Get32();
@@ -84,11 +84,11 @@ public class Bmp {
 			//if 8 bit, then there must be the index palette, in BGR0 format 
 			if (BitCount == 8){
 				
-			    if (_type.HasFlags(LoadType.Palette))
+			    if (_type.HasFlag(LoadType.Palette))
 			    {
     				byte[] pal = file.GetBuffer(1024);
     				//generate the palette
-    				_palette = Image.CreateFromData(256, 1, false, Image.Format.Rgba8, pal);
+				    Palette = Image.CreateFromData(256, 1, false, Image.Format.Rgba8, pal);
 			    } else {
 			        //Bye bye those 1024 bytes 
 			        file.GetBuffer(1024);
@@ -97,7 +97,7 @@ public class Bmp {
 			
 			//Now for the raster part
 			
-			if (_type.HasFlags(LoadType.Raster))
+			if (_type.HasFlag(LoadType.Raster))
 			    {
 			
     			    int bytesPerTexel = BitCount == 24 ? 3 : 1;
@@ -146,7 +146,7 @@ public class Bmp {
 		}
 	}
 	
-	private PrintError(string message)
+	private void PrintError(string message)
 	{
 	    GD.Print("BMP loader error: "+ message);
 	}
